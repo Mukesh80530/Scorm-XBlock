@@ -86,7 +86,7 @@ class ScormXBlock(XBlock):
                 start_html_file=start_html_file,
 					 tincan=True,
 					 endpoint='http://localhost:88/api/',
-					 auth='Basic MmVjZTZkMzZiMDkxNTdmNTNmMDhiMTA5ZmEyNDNmMWE4Y2NiNGNjMjoxMWVkZGRlMTk1YjQ2OGNiZWEzYjU3NGQyNThiYmI4NGUxMjI0YmIz'
+					 auth='Basic MmVjZTZkMzZiMDkxNTdmNTNmMDhiMTA5ZmEyNDNmMWE4Y2NiNGNjMjoxMWVkZGRlMTk1YjQ2OGNiZWEzYjU3NGQyNThiYmI4NGUxMjI0YmIz',
 					 registration='2981c910-6445-11e4-9803-0800200c9a66'
             ))
         else:
