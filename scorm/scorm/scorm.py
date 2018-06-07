@@ -87,7 +87,7 @@ class ScormXBlock(XBlock):
 					 tincan=True,
 					 endpoint='http://localhost:88/api/',
 					 auth='Basic MmVjZTZkMzZiMDkxNTdmNTNmMDhiMTA5ZmEyNDNmMWE4Y2NiNGNjMjoxMWVkZGRlMTk1YjQ2OGNiZWEzYjU3NGQyNThiYmI4NGUxMjI0YmIz',
-					 actor='{"name": ["Harsheen chauhan"], "mbox": ["mailto:Harsheen@flipick.com"], "objectType": ["Agent"]}'
+					 actor={"name": ["Harsheen chauhan"], "mbox": ["mailto:Harsheen@flipick.com"], "objectType": ["Agent"]}
             ))
         else:
             frag = Fragment()
