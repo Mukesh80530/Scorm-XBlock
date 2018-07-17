@@ -13,6 +13,7 @@ import tempfile
 from zipfile import ZipFile
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files import File
 from django.core.files.storage import default_storage
 from django.utils import timezone
@@ -24,7 +25,11 @@ from xblock.fields import Scope, Dict, String
 from xblock.fragment import Fragment
 
 from .utils import get_sha1, make_file_response
-
+from urllib import urlencode
+from Crypto.Cipher import AES
+import urllib
+import json
+import base64
 
 # Make '_' a no-op so we can scrape strings
 _ = lambda text: text
@@ -79,15 +84,36 @@ class ScormXBlock(XBlock):
         """
         html = self.resource_string("static/html/scorm.html")
         story_base_url = self.scorm_file_meta.get('story_base_url')
-        start_html_file = 'index.html'
+	username = User.objects.get(id=self.system.user_id).get_username()
+
+	MASER_KEY = settings.FEATURES['MX_TINCAN_SERVER_AUTH_KEY']
+	cipher = AES.new(MASER_KEY, AES.MODE_ECB)
+	auth_token = base64.b64encode(cipher.encrypt(username.rjust(16)))
+
+	if context.get('can_add') or context.get('can_edit'):
+	    auth = 'anonymous'
+	else:
+	    auth = 'access'+' '+auth_token	
+
         if story_base_url:
+	    if settings.FEATURES["MX_TINCAN_SERVER_IP"]:
+		tincan_server = settings.FEATURES['MX_TINCAN_SERVER_IP']
+	    folder_name = self.scorm_file.split('/')[-2]
+	    dir_list =  os.listdir(SCORM_ROOT)
+	    dir_name = os.path.join(SCORM_ROOT,folder_name)
+	    if folder_name in dir_list:
+		for dirname, dirpath, filenames in os.walk(dir_name):
+		    if 'index.html' in filenames:
+		        start_html_file = 'index.html'
+		    else:
+		         start_html_file = 'story.html'
+		    break
             frag = Fragment(html.format(
-                story_base_url=story_base_url,
-                start_html_file=start_html_file,
-					 tincan=True,
-					 endpoint='http://localhost:88/api/',
-					 auth='Basic MmVjZTZkMzZiMDkxNTdmNTNmMDhiMTA5ZmEyNDNmMWE4Y2NiNGNjMjoxMWVkZGRlMTk1YjQ2OGNiZWEzYjU3NGQyNThiYmI4NGUxMjI0YmIz',
-					 actor={"name": ["Harsheen chauhan"], "mbox": ["mailto:Harsheen@flipick.com"], "objectType": ["Agent"]}
+                	story_base_url=story_base_url,
+                	start_html_file=start_html_file,
+			endpoint=urllib.quote(tincan_server),
+			auth=auth,
+			actor=urllib.quote('{"name":["'+username+'"],"mbox":[""],"objectType":["Agent"]}')
             ))
         else:
             frag = Fragment()
@@ -96,6 +122,7 @@ class ScormXBlock(XBlock):
         return frag
 
     def student_view_data(self):
+
         """
         Inform REST api clients about original file location and it's "freshness".
         Make sure to include `student_view_data=scorm` to URL params in the request.
